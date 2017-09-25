@@ -8,10 +8,7 @@ import java.awt.event.ItemListener;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import javax.swing.JCheckBox;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
+import javax.swing.*;
 
 public class GUI extends JFrame implements ItemListener {
 
@@ -19,16 +16,16 @@ public class GUI extends JFrame implements ItemListener {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	CryptowatchAPIHandler api = new CryptowatchAPIHandler();
+	private CryptowatchAPIHandler api = new CryptowatchAPIHandler();
 	private JPanel panel1;
 	private JLabel label1, label2, label3, label4;
 	private JCheckBox checkBox1;
 
-	public GUI(String title, Dimension dim) throws Exception {
+	GUI(String title, Dimension dim) throws Exception {
 		this.setTitle(title);
 		this.setSize(dim);
 		this.setPreferredSize(dim);
-		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
+		this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		createContents();
 		this.setVisible(true);
 		this.setAlwaysOnTop(true);
@@ -72,7 +69,7 @@ public class GUI extends JFrame implements ItemListener {
 
 	}
 
-	public void updatePrice() throws MalformedURLException, Exception {
+	void updatePrice() throws Exception {
 		Double price = api.getCryptowatchPrice(new URL("https://api.cryptowat.ch/markets/gdax/ethusd/price"));
 		label2.setText(price.toString());
 	}

@@ -7,39 +7,39 @@ import java.net.URL;
 
 import com.google.gson.Gson;
 
-public class CryptowatchAPIHandler {
+class CryptowatchAPIHandler {
 
-	public CryptowatchAPIHandler() throws Exception {
+	CryptowatchAPIHandler() throws Exception {
 
 	}
 
 	/**
 	 * 
 	 * 
-	 * @param url
-	 * @return
+	 * @param url The URL of the API
+	 * @return Returns the market price as a Double
 	 * @throws Exception
 	 * 
 	 */
 
-	public Double getCryptowatchPrice(URL url) throws Exception {
+	Double getCryptowatchPrice(URL url) throws Exception {
 
 		String jsonString = getJsonFromURL(url);
 
 		System.out.println(jsonString);
 
 		Gson g = new Gson();
-		Response response = g.fromJson(jsonString, Response.class);
+		PriceResponse priceResponse = g.fromJson(jsonString, PriceResponse.class);
 
-		return response.result.price;
+		return priceResponse.result.price;
 	}
 
-	public String getJsonFromURL(URL url) throws IOException {
+	private String getJsonFromURL(URL url) throws Exception {
 
 		BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
 
 		String jsonString = "";
-		String appendString = "";
+		String appendString;
 
 		while ((appendString = br.readLine()) != null) {
 			jsonString = jsonString.concat(appendString);
