@@ -21,7 +21,7 @@ public class CryptowatchAPIHandler {
 	 * @throws Exception
 	 * 
 	 */
-	
+
 	public Double getCryptowatchPrice(URL url) throws Exception {
 
 		String jsonString = getJsonFromURL(url);
@@ -33,9 +33,9 @@ public class CryptowatchAPIHandler {
 
 		return response.result.price;
 	}
-	
-	public String getJsonFromURL(URL url) throws IOException{
-		
+
+	public String getJsonFromURL(URL url) throws IOException {
+
 		BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
 
 		String jsonString = "";
@@ -45,9 +45,9 @@ public class CryptowatchAPIHandler {
 			jsonString = jsonString.concat(appendString);
 		}
 		br.close();
-		
+
 		return jsonString;
-		
+
 	}
 
 }

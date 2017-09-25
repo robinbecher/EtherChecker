@@ -1,15 +1,19 @@
 package code;
+
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-public class GUI extends JFrame {
+public class GUI extends JFrame implements ItemListener{
 
 	/**
 	 * 
@@ -17,8 +21,8 @@ public class GUI extends JFrame {
 	private static final long serialVersionUID = 1L;
 	CryptowatchAPIHandler api = new CryptowatchAPIHandler();
 	private JPanel panel1;
-	private JLabel label1, label2, label3;
-	private JLabel label4;
+	private JLabel label1, label2, label3,label4;
+	private JCheckBox checkBox1;
 
 	public GUI(String title, Dimension dim) throws Exception {
 		this.setTitle(title);
@@ -27,6 +31,7 @@ public class GUI extends JFrame {
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 		createContents();
 		this.setVisible(true);
+		this.setAlwaysOnTop(true);
 	}
 
 	private void createContents() {
@@ -57,12 +62,35 @@ public class GUI extends JFrame {
 		c.gridy = 3;
 		c.gridwidth = 1;
 		panel1.add(label4, c);
+		checkBox1 = new JCheckBox("Always on top");
+		checkBox1.setSelected(true);
+		checkBox1.addItemListener(this);
+		c.gridx=0;
+		c.gridy=4;
+		c.gridwidth=1;
+		panel1.add(checkBox1,c);
 
 	}
 
 	public void updatePrice() throws MalformedURLException, Exception {
 		Double price = api.getCryptowatchPrice(new URL("https://api.cryptowat.ch/markets/gdax/ethusd/price"));
 		label2.setText(price.toString());
+	}
+
+	@Override
+	public void itemStateChanged(ItemEvent e) {
+		
+		Object source = e.getItemSelectable();
+		
+		if (source == checkBox1){
+			if (e.getStateChange() == ItemEvent.DESELECTED){
+				this.setAlwaysOnTop(false);
+			}else{
+				this.setAlwaysOnTop(true);
+			}
+				
+				
+		}
 	}
 
 }
