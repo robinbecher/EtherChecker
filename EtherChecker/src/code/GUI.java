@@ -13,7 +13,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-public class GUI extends JFrame implements ItemListener{
+public class GUI extends JFrame implements ItemListener {
 
 	/**
 	 * 
@@ -21,7 +21,7 @@ public class GUI extends JFrame implements ItemListener{
 	private static final long serialVersionUID = 1L;
 	CryptowatchAPIHandler api = new CryptowatchAPIHandler();
 	private JPanel panel1;
-	private JLabel label1, label2, label3,label4;
+	private JLabel label1, label2, label3, label4;
 	private JCheckBox checkBox1;
 
 	public GUI(String title, Dimension dim) throws Exception {
@@ -52,7 +52,7 @@ public class GUI extends JFrame implements ItemListener{
 		c.gridy = 1;
 		c.gridwidth = 1;
 		panel1.add(label2, c);
-		label3 = new JLabel("Price updates every 5sec");
+		label3 = new JLabel("Price updated every 5sec");
 		c.gridx = 0;
 		c.gridy = 2;
 		c.gridwidth = 1;
@@ -65,10 +65,10 @@ public class GUI extends JFrame implements ItemListener{
 		checkBox1 = new JCheckBox("Always on top");
 		checkBox1.setSelected(true);
 		checkBox1.addItemListener(this);
-		c.gridx=0;
-		c.gridy=4;
-		c.gridwidth=1;
-		panel1.add(checkBox1,c);
+		c.gridx = 0;
+		c.gridy = 4;
+		c.gridwidth = 1;
+		panel1.add(checkBox1, c);
 
 	}
 
@@ -79,17 +79,16 @@ public class GUI extends JFrame implements ItemListener{
 
 	@Override
 	public void itemStateChanged(ItemEvent e) {
-		
+
 		Object source = e.getItemSelectable();
-		
-		if (source == checkBox1){
-			if (e.getStateChange() == ItemEvent.DESELECTED){
+
+		if (source == checkBox1) {
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
 				this.setAlwaysOnTop(false);
-			}else{
+			} else {
 				this.setAlwaysOnTop(true);
 			}
-				
-				
+
 		}
 	}
 
