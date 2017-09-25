@@ -2,15 +2,14 @@ package code;
 
 import java.awt.Dimension;
 
-public class Main {
-
-	private static boolean stop = false;
+class Main {
 
 	public static void main(String[] args) throws Exception {
 
-		GUI gui = new GUI("Current ETHUSD Price on GDAX - via cryptowat.ch", new Dimension(600, 400));
+		GUI gui = new GUI(new Dimension(600, 400));
 
-		while (stop == false) {
+		boolean stop = false;
+		while (!stop) {
 			gui.updatePrice();
 			Thread.sleep(5000);
 		}

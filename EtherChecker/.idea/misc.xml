@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="EntryPointsManager">
+    <entry_points version="2.0">
+      <entry_point TYPE="field" FQNAME="code.PriceResponse.Result price" />
+      <entry_point TYPE="field" FQNAME="code.PriceResponse.Allowance cost" />
+      <entry_point TYPE="field" FQNAME="code.PriceResponse.Allowance remaining" />
+      <entry_point TYPE="field" FQNAME="code.PriceResponse result" />
+      <entry_point TYPE="field" FQNAME="code.PriceResponse allowance" />
+    </entry_points>
+  </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" project-jdk-name="1.8" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/classes" />
   </component>

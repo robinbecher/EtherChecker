@@ -1,7 +1,6 @@
 package code;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 
@@ -9,7 +8,7 @@ import com.google.gson.Gson;
 
 class CryptowatchAPIHandler {
 
-	CryptowatchAPIHandler() throws Exception {
+	CryptowatchAPIHandler() {
 
 	}
 
@@ -18,7 +17,7 @@ class CryptowatchAPIHandler {
 	 * 
 	 * @param url The URL of the API
 	 * @return Returns the market price as a Double
-	 * @throws Exception
+	 * @throws Exception might throw an Exception
 	 * 
 	 */
 

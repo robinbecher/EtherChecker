@@ -1,6 +1,6 @@
 package code;
 
-public class PriceResponse {
+class PriceResponse {
 
 	Result result;
 	Allowance allowance;
@@ -9,7 +9,7 @@ public class PriceResponse {
 		Double price;
 	}
 
-	public static class Allowance {
+	static class Allowance {
 		long cost;
 		long remaining;
 	}

@@ -2,10 +2,16 @@
   <dictionary name="becr">
     <words>
       <w>becher</w>
+      <w>becr</w>
+      <w>classpathentry</w>
+      <w>codegen</w>
       <w>cryptowat</w>
       <w>cryptowatch</w>
       <w>ethusd</w>
       <w>gdax</w>
+      <w>gson</w>
+      <w>javabuilder</w>
+      <w>javanature</w>
     </words>
   </dictionary>
 </component>
