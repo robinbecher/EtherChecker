@@ -10,8 +10,11 @@ public class LogGUI extends JFrame {
     JPanel contentPanel;
     private JTextPane textPane;
 
-    public LogGUI() {
-
+    LogGUI() {
+        setContentPane(contentPanel);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        pack();
+        setVisible(false);
     }
 
     {

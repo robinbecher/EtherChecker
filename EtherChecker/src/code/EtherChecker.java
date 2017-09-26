@@ -13,7 +13,7 @@ public class EtherChecker {
     public static void main(String[] args) throws Exception {
         EtherCheckerGUI gui = new EtherCheckerGUI();
 
-		boolean stop = false;
+        boolean stop = false;
 		while (!stop) {
             try {
                 gui.update();

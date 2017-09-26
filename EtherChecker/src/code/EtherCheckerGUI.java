@@ -14,6 +14,9 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.net.URL;
 
+/**
+ *
+ */
 public class EtherCheckerGUI implements ListSelectionListener,ItemListener,ActionListener {
     private JPanel priceDisplayPanel;
     private JPanel selectionInfoPanel;
@@ -49,11 +52,8 @@ public class EtherCheckerGUI implements ListSelectionListener,ItemListener,Actio
         frame.setVisible(true);
 
         logGui = new LogGUI();
-        logGui.setContentPane(logGui.contentPanel);
-        logGui.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        logGui.pack();
         logGui.setLocationRelativeTo(logButton);
-        logGui.setVisible(false);
+
 
         alwaysOnTopCheckBox.addItemListener(this);
         exchangesList.addListSelectionListener(this);
@@ -104,7 +104,7 @@ public class EtherCheckerGUI implements ListSelectionListener,ItemListener,Actio
     }
 
     private String determineURL(Exchange currentExchange, TradingPair currentTradingPair) {
-        String url = new String("https://api.cryptowat.ch/markets/");
+        String url = "https://api.cryptowat.ch/markets/";
 
         switch (currentExchange) {
             case GDAX:
@@ -304,7 +304,7 @@ public class EtherCheckerGUI implements ListSelectionListener,ItemListener,Actio
 
     @Override
     public void itemStateChanged(ItemEvent e) {
-        Object source = e.getItemSelectable();
+//        Object source = e.getItemSelectable();
         if (e.getStateChange() == ItemEvent.DESELECTED) {
             this.frame.setAlwaysOnTop(false);
         } else {
