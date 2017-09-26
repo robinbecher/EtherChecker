@@ -16,7 +16,7 @@ class CryptowatchAPIHandler {
      * @return Returns the market price as a Double
 	 * @throws Exception might throw an Exception
 	 */
-	Double getCryptowatchPrice(URL url) throws Exception {
+	PriceResponse getCryptowatchPrice(URL url) throws Exception {
 
 		String jsonString = getJsonFromURL(url);
 
@@ -25,7 +25,7 @@ class CryptowatchAPIHandler {
 		Gson g = new Gson();
 		PriceResponse priceResponse = g.fromJson(jsonString, PriceResponse.class);
 
-		return priceResponse.result.price;
+		return priceResponse;
 	}
 
     /**

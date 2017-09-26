@@ -5,18 +5,28 @@ import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.net.URL;
 
 public class EtherCheckerGUI {
-    private JPanel priceInfoPanel;
-    private JPanel titlePanel;
+    private JPanel priceDisplayPanel;
+    private JPanel selectionInfoPanel;
     private JPanel generalInfoPanel;
     private JCheckBox alwaysOnTopCheckBox;
     private JPanel topLevelPanel;
     private JLabel priceLabel;
+    private JPanel listPanel;
+    private JList exchangesList;
+    private JList tradingPairList;
+    private JLabel exchangeLabel;
+    private JLabel marketLabel;
+    private JProgressBar progressBar;
     private static final CryptowatchAPIHandler api = new CryptowatchAPIHandler();
+    private Exchange currentExchange = Exchange.GDAX;
+    private TradingPair currentTradingPair = TradingPair.ETHUSD;
 
     /**
      * Creating an Object of EtherCheckerGUI spawns a frame in the center of the screen,
@@ -32,23 +42,37 @@ public class EtherCheckerGUI {
         frame.setAlwaysOnTop(alwaysOnTopCheckBox.isSelected());
         frame.setVisible(true);
 
-        try {
-            update();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
         alwaysOnTopCheckBox.addItemListener(e -> {
             Object source = e.getItemSelectable();
-            if (source == alwaysOnTopCheckBox) {
-                if (e.getStateChange() == ItemEvent.DESELECTED) {
-                    frame.setAlwaysOnTop(false);
-                } else {
-                    frame.setAlwaysOnTop(true);
-                }
+            if (e.getStateChange() == ItemEvent.DESELECTED) {
+                frame.setAlwaysOnTop(false);
+            } else {
+                frame.setAlwaysOnTop(true);
             }
         });
 
+
+        exchangesList.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+
+                if (exchangesList.isSelectedIndex(0)) {
+                    currentExchange = Exchange.GDAX;
+                } else if (exchangesList.isSelectedIndex(1)) {
+                    currentExchange = Exchange.KRAKEN;
+                } else if (exchangesList.isSelectedIndex(2)) {
+                    currentExchange = Exchange.BITFINEX;
+                } else {
+                    System.out.println("Exchange Error");
+                }
+                System.out.println(currentExchange.toString());
+                try {
+                    update();
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                }
+            }
+        });
     }
 
     /**
@@ -60,9 +84,68 @@ public class EtherCheckerGUI {
     void update() throws Exception {
         System.out.println("tick");
 
-        Double price;
-        price = api.getCryptowatchPrice(new URL("https://api.cryptowat.ch/markets/gdax/ethusd/price"));
-        priceLabel.setText(price.toString());
+        URL url = new URL(determineURL(currentExchange, currentTradingPair));
+
+        PriceResponse priceResponse;
+
+        progressBar.setIndeterminate(true);
+        priceResponse = api.getCryptowatchPrice(url);
+        priceLabel.setText(priceResponse.result.price.toString());
+        progressBar.setIndeterminate(false);
+
+        if (currentExchange == Exchange.GDAX) {
+            exchangeLabel.setText("GDAX");
+        } else if (currentExchange == Exchange.KRAKEN) {
+            exchangeLabel.setText("Kraken");
+        } else if (currentExchange == Exchange.BITFINEX) {
+            exchangeLabel.setText("Bitfinex");
+        } else {
+            //TODO not a nice Error message
+            System.out.println("not a valid exchange");
+        }
+
+        if (currentTradingPair == TradingPair.ETHUSD) {
+            marketLabel.setText("ETH/USD");
+        } else if (currentTradingPair == TradingPair.ETHEUR) {
+            marketLabel.setText("ETH/EUR");
+        } else if (currentTradingPair == TradingPair.ETHBTC) {
+            marketLabel.setText("ETH/BTC");
+        } else {
+            System.out.println("not a valid trading pair");
+        }
+
+        String exchange;
+
+    }
+
+    private String determineURL(Exchange currentExchange, TradingPair currentTradingPair) {
+        String url = new String("https://api.cryptowat.ch/markets/");
+
+        switch (currentExchange) {
+            case GDAX:
+                url = url.concat("gdax/");
+                break;
+            case KRAKEN:
+                url = url.concat("kraken/");
+                break;
+            case BITFINEX:
+                url = url.concat("bitfinex/");
+                break;
+        }
+
+        switch (currentTradingPair) {
+            case ETHUSD:
+                url = url.concat("ethusd/price");
+                break;
+            case ETHEUR:
+                url = url.concat("etheur/price");
+                break;
+            case ETHBTC:
+                url = url.concat("ethbtc/price");
+                break;
+        }
+
+        return url;
     }
 
 
@@ -101,73 +184,85 @@ public class EtherCheckerGUI {
      */
     private void $$$setupUI$$$() {
         topLevelPanel = new JPanel();
-        topLevelPanel.setLayout(new GridLayoutManager(3, 4, new Insets(0, 0, 0, 0), -1, -1));
+        topLevelPanel.setLayout(new GridLayoutManager(4, 4, new Insets(0, 0, 0, 0), -1, -1));
         topLevelPanel.setPreferredSize(new Dimension(600, 400));
-        titlePanel = new JPanel();
-        titlePanel.setLayout(new GridLayoutManager(1, 7, new Insets(0, 0, 0, 0), -1, -1));
-        topLevelPanel.add(titlePanel, new GridConstraints(0, 0, 1, 4, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
-        final JPanel panel1 = new JPanel();
-        panel1.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
-        titlePanel.add(panel1, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        selectionInfoPanel = new JPanel();
+        selectionInfoPanel.setLayout(new GridLayoutManager(1, 5, new Insets(0, 0, 0, 0), -1, -1));
+        topLevelPanel.add(selectionInfoPanel, new GridConstraints(1, 0, 1, 4, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         final JLabel label1 = new JLabel();
-        label1.setText("Exchange");
-        panel1.add(label1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        final JPanel panel2 = new JPanel();
-        panel2.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
-        titlePanel.add(panel2, new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
-        final JLabel label2 = new JLabel();
-        label2.setText("Market");
-        panel2.add(label2, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        final JPanel panel3 = new JPanel();
-        panel3.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
-        titlePanel.add(panel3, new GridConstraints(0, 5, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
-        final JLabel label3 = new JLabel();
-        label3.setText("Price:");
-        panel3.add(label3, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        label1.setText("Price:");
+        selectionInfoPanel.add(label1, new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        exchangeLabel = new JLabel();
+        exchangeLabel.setText("Exchange");
+        selectionInfoPanel.add(exchangeLabel, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        marketLabel = new JLabel();
+        marketLabel.setText("Market");
+        selectionInfoPanel.add(marketLabel, new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final Spacer spacer1 = new Spacer();
-        titlePanel.add(spacer1, new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+        selectionInfoPanel.add(spacer1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
         final Spacer spacer2 = new Spacer();
-        titlePanel.add(spacer2, new GridConstraints(0, 4, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+        selectionInfoPanel.add(spacer2, new GridConstraints(0, 4, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+        priceDisplayPanel = new JPanel();
+        priceDisplayPanel.setLayout(new GridLayoutManager(3, 3, new Insets(0, 0, 0, 0), -1, -1));
+        topLevelPanel.add(priceDisplayPanel, new GridConstraints(2, 0, 1, 4, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         final Spacer spacer3 = new Spacer();
-        titlePanel.add(spacer3, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
-        final Spacer spacer4 = new Spacer();
-        titlePanel.add(spacer4, new GridConstraints(0, 6, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
-        priceInfoPanel = new JPanel();
-        priceInfoPanel.setLayout(new GridLayoutManager(3, 3, new Insets(0, 0, 0, 0), -1, -1));
-        topLevelPanel.add(priceInfoPanel, new GridConstraints(1, 0, 1, 4, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
-        final Spacer spacer5 = new Spacer();
-        priceInfoPanel.add(spacer5, new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        priceDisplayPanel.add(spacer3, new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         priceLabel = new JLabel();
         priceLabel.setFocusable(false);
         Font priceLabelFont = this.$$$getFont$$$(null, -1, 28, priceLabel.getFont());
         if (priceLabelFont != null) priceLabel.setFont(priceLabelFont);
         priceLabel.setText("PRICE");
-        priceInfoPanel.add(priceLabel, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        priceDisplayPanel.add(priceLabel, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final Spacer spacer4 = new Spacer();
+        priceDisplayPanel.add(spacer4, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+        final Spacer spacer5 = new Spacer();
+        priceDisplayPanel.add(spacer5, new GridConstraints(1, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
         final Spacer spacer6 = new Spacer();
-        priceInfoPanel.add(spacer6, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
-        final Spacer spacer7 = new Spacer();
-        priceInfoPanel.add(spacer7, new GridConstraints(1, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
-        final Spacer spacer8 = new Spacer();
-        priceInfoPanel.add(spacer8, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        priceDisplayPanel.add(spacer6, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         generalInfoPanel = new JPanel();
-        generalInfoPanel.setLayout(new GridLayoutManager(4, 3, new Insets(0, 0, 0, 0), -1, -1));
-        topLevelPanel.add(generalInfoPanel, new GridConstraints(2, 0, 1, 4, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
-        final JLabel label4 = new JLabel();
-        label4.setText("Price Updated every 1sec");
-        generalInfoPanel.add(label4, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        generalInfoPanel.setLayout(new GridLayoutManager(5, 3, new Insets(0, 0, 0, 0), -1, -1));
+        topLevelPanel.add(generalInfoPanel, new GridConstraints(3, 0, 1, 4, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        final JLabel label2 = new JLabel();
+        label2.setText("Price Updated every 1sec");
+        generalInfoPanel.add(label2, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final Spacer spacer7 = new Spacer();
+        generalInfoPanel.add(spacer7, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        final Spacer spacer8 = new Spacer();
+        generalInfoPanel.add(spacer8, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
         final Spacer spacer9 = new Spacer();
-        generalInfoPanel.add(spacer9, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
-        final Spacer spacer10 = new Spacer();
-        generalInfoPanel.add(spacer10, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
-        final Spacer spacer11 = new Spacer();
-        generalInfoPanel.add(spacer11, new GridConstraints(1, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
-        final JLabel label5 = new JLabel();
-        label5.setText("©Robin Becher 2017");
-        generalInfoPanel.add(label5, new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        generalInfoPanel.add(spacer9, new GridConstraints(1, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+        final JLabel label3 = new JLabel();
+        label3.setText("©Robin Becher 2017");
+        generalInfoPanel.add(label3, new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         alwaysOnTopCheckBox = new JCheckBox();
         alwaysOnTopCheckBox.setSelected(true);
         alwaysOnTopCheckBox.setText("Always on top");
         generalInfoPanel.add(alwaysOnTopCheckBox, new GridConstraints(3, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        progressBar = new JProgressBar();
+        generalInfoPanel.add(progressBar, new GridConstraints(4, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        listPanel = new JPanel();
+        listPanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+        topLevelPanel.add(listPanel, new GridConstraints(0, 0, 1, 4, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        final JScrollPane scrollPane1 = new JScrollPane();
+        listPanel.add(scrollPane1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        exchangesList = new JList();
+        final DefaultListModel defaultListModel1 = new DefaultListModel();
+        defaultListModel1.addElement("GDAX");
+        defaultListModel1.addElement("Kraken");
+        defaultListModel1.addElement("Bitfinex");
+        exchangesList.setModel(defaultListModel1);
+        exchangesList.setSelectedIndex(0);
+        scrollPane1.setViewportView(exchangesList);
+        final JScrollPane scrollPane2 = new JScrollPane();
+        listPanel.add(scrollPane2, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        tradingPairList = new JList();
+        final DefaultListModel defaultListModel2 = new DefaultListModel();
+        defaultListModel2.addElement("ETH/USD");
+        defaultListModel2.addElement("ETH/EUR");
+        defaultListModel2.addElement("ETH/BTC");
+        tradingPairList.setModel(defaultListModel2);
+        tradingPairList.setSelectedIndex(0);
+        scrollPane2.setViewportView(tradingPairList);
     }
 
     /**
