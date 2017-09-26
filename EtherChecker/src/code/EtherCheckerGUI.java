@@ -11,9 +11,10 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.net.URL;
 
-public class EtherCheckerGUI {
+public class EtherCheckerGUI implements ListSelectionListener,ItemListener,ActionListener {
     private JPanel priceDisplayPanel;
     private JPanel selectionInfoPanel;
     private JPanel generalInfoPanel;
@@ -30,6 +31,8 @@ public class EtherCheckerGUI {
     private static final CryptowatchAPIHandler api = new CryptowatchAPIHandler();
     private Exchange currentExchange = Exchange.GDAX;
     private TradingPair currentTradingPair = TradingPair.ETHUSD;
+    private JFrame frame;
+    private LogGUI logGui;
 
     /**
      * Creating an Object of EtherCheckerGUI spawns a frame in the center of the screen,
@@ -37,7 +40,7 @@ public class EtherCheckerGUI {
      * by using the alwaysOnTopCheckBox. "Always on top" is the default setting.
      */
     EtherCheckerGUI() {
-        JFrame frame = new JFrame("EtherCheckerGUI");
+        frame = new JFrame("EtherCheckerGUI");
         frame.setContentPane(this.topLevelPanel);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
@@ -45,63 +48,17 @@ public class EtherCheckerGUI {
         frame.setAlwaysOnTop(alwaysOnTopCheckBox.isSelected());
         frame.setVisible(true);
 
-        LogGUI logGui = new LogGUI();
+        logGui = new LogGUI();
         logGui.setContentPane(logGui.contentPanel);
         logGui.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         logGui.pack();
         logGui.setLocationRelativeTo(logButton);
         logGui.setVisible(false);
 
-        alwaysOnTopCheckBox.addItemListener(e -> {
-            Object source = e.getItemSelectable();
-            if (e.getStateChange() == ItemEvent.DESELECTED) {
-                frame.setAlwaysOnTop(false);
-            } else {
-                frame.setAlwaysOnTop(true);
-            }
-        });
-        exchangesList.addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-
-                if (exchangesList.isSelectedIndex(0)) {
-                    currentExchange = Exchange.GDAX;
-                } else if (exchangesList.isSelectedIndex(1)) {
-                    currentExchange = Exchange.KRAKEN;
-                } else if (exchangesList.isSelectedIndex(2)) {
-                    currentExchange = Exchange.BITSTAMP;
-                } else {
-                    System.out.println("Exchange Error");
-                }
-            }
-        });
-        tradingPairList.addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-                if (tradingPairList.isSelectedIndex(0)) {
-                    currentTradingPair = TradingPair.ETHUSD;
-                } else if (tradingPairList.isSelectedIndex(1)) {
-                    currentTradingPair = TradingPair.ETHEUR;
-                } else if (tradingPairList.isSelectedIndex(2)) {
-                    currentTradingPair = TradingPair.ETHBTC;
-                } else {
-                    System.out.println("Trading pair Error");
-                }
-                try {
-                    update();
-                } catch (Exception e1) {
-                    e1.printStackTrace();
-                }
-            }
-        });
-        logButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (!logGui.isVisible()) {
-                    logGui.setVisible(true);
-                }
-            }
-        });
+        alwaysOnTopCheckBox.addItemListener(this);
+        exchangesList.addListSelectionListener(this);
+        tradingPairList.addListSelectionListener(this);
+        logButton.addActionListener(this);
     }
 
     /**
@@ -144,7 +101,6 @@ public class EtherCheckerGUI {
             System.out.println("not a valid trading pair");
         }
 
-        String exchange;
     }
 
     private String determineURL(Exchange currentExchange, TradingPair currentTradingPair) {
@@ -176,7 +132,6 @@ public class EtherCheckerGUI {
 
         return url;
     }
-
 
     /**
      * @noinspection ALL
@@ -302,5 +257,58 @@ public class EtherCheckerGUI {
      */
     public JComponent $$$getRootComponent$$$() {
         return topLevelPanel;
+    }
+
+    @Override
+    public void valueChanged(ListSelectionEvent e) {
+        Object source = e.getSource();
+
+        if (source == exchangesList) {
+            if (exchangesList.isSelectedIndex(0)) {
+                currentExchange = Exchange.GDAX;
+            } else if (exchangesList.isSelectedIndex(1)) {
+                currentExchange = Exchange.KRAKEN;
+            } else if (exchangesList.isSelectedIndex(2)) {
+                currentExchange = Exchange.BITSTAMP;
+            } else {
+                System.out.println("Exchange Error");
+            }
+        } else if (source == tradingPairList) {
+            if (tradingPairList.isSelectedIndex(0)) {
+                currentTradingPair = TradingPair.ETHUSD;
+            } else if (tradingPairList.isSelectedIndex(1)) {
+                currentTradingPair = TradingPair.ETHEUR;
+            } else if (tradingPairList.isSelectedIndex(2)) {
+                currentTradingPair = TradingPair.ETHBTC;
+            } else {
+                System.out.println("Trading pair Error");
+            }
+
+        }
+
+        try {
+            update();
+        } catch (Exception e1) {
+            e1.printStackTrace();
+        }
+
+
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (!this.logGui.isVisible()) {
+            this.logGui.setVisible(true);
+        }
+    }
+
+    @Override
+    public void itemStateChanged(ItemEvent e) {
+        Object source = e.getItemSelectable();
+        if (e.getStateChange() == ItemEvent.DESELECTED) {
+            this.frame.setAlwaysOnTop(false);
+        } else {
+            this.frame.setAlwaysOnTop(true);
+        }
     }
 }
