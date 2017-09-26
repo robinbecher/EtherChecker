@@ -7,11 +7,6 @@ import java.net.URL;
 import com.google.gson.Gson;
 
 class CryptowatchAPIHandler {
-
-	CryptowatchAPIHandler() {
-
-	}
-
 	/**
 	 * 
 	 * 
