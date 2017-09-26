@@ -5,6 +5,8 @@ public class Main {
     /**
      * Executing the main method spawns an instance of the EtherCheckerGUI and updates it every 5sec.
      *
+     * TODO write logs to log frame
+     *
      * @param args default
      * @throws Exception Throws an Exception if API call is unsuccessful or Thread is interrupted while sleeping
      */
@@ -13,8 +15,12 @@ public class Main {
 
 		boolean stop = false;
 		while (!stop) {
-            gui.update();
-            Thread.sleep(5000);
+            try {
+                gui.update();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            Thread.sleep(1000);
         }
     }
 }

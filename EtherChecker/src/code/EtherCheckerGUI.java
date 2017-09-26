@@ -8,6 +8,8 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.net.URL;
 
@@ -24,6 +26,7 @@ public class EtherCheckerGUI {
     private JLabel exchangeLabel;
     private JLabel marketLabel;
     private JProgressBar progressBar;
+    private JButton logButton;
     private static final CryptowatchAPIHandler api = new CryptowatchAPIHandler();
     private Exchange currentExchange = Exchange.GDAX;
     private TradingPair currentTradingPair = TradingPair.ETHUSD;
@@ -42,6 +45,13 @@ public class EtherCheckerGUI {
         frame.setAlwaysOnTop(alwaysOnTopCheckBox.isSelected());
         frame.setVisible(true);
 
+        LogGUI logGui = new LogGUI();
+        logGui.setContentPane(logGui.contentPanel);
+        logGui.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        logGui.pack();
+        logGui.setLocationRelativeTo(logButton);
+        logGui.setVisible(false);
+
         alwaysOnTopCheckBox.addItemListener(e -> {
             Object source = e.getItemSelectable();
             if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -50,8 +60,6 @@ public class EtherCheckerGUI {
                 frame.setAlwaysOnTop(true);
             }
         });
-
-
         exchangesList.addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent e) {
@@ -61,15 +69,36 @@ public class EtherCheckerGUI {
                 } else if (exchangesList.isSelectedIndex(1)) {
                     currentExchange = Exchange.KRAKEN;
                 } else if (exchangesList.isSelectedIndex(2)) {
-                    currentExchange = Exchange.BITFINEX;
+                    currentExchange = Exchange.BITSTAMP;
                 } else {
                     System.out.println("Exchange Error");
                 }
-                System.out.println(currentExchange.toString());
+            }
+        });
+        tradingPairList.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                if (tradingPairList.isSelectedIndex(0)) {
+                    currentTradingPair = TradingPair.ETHUSD;
+                } else if (tradingPairList.isSelectedIndex(1)) {
+                    currentTradingPair = TradingPair.ETHEUR;
+                } else if (tradingPairList.isSelectedIndex(2)) {
+                    currentTradingPair = TradingPair.ETHBTC;
+                } else {
+                    System.out.println("Trading pair Error");
+                }
                 try {
                     update();
                 } catch (Exception e1) {
                     e1.printStackTrace();
+                }
+            }
+        });
+        logButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!logGui.isVisible()) {
+                    logGui.setVisible(true);
                 }
             }
         });
@@ -82,7 +111,8 @@ public class EtherCheckerGUI {
      * @throws Exception update() can throw an Exception if the API call fails.
      */
     void update() throws Exception {
-        System.out.println("tick");
+        System.out.println(currentExchange.toString());
+        System.out.println(currentTradingPair.toString());
 
         URL url = new URL(determineURL(currentExchange, currentTradingPair));
 
@@ -97,8 +127,8 @@ public class EtherCheckerGUI {
             exchangeLabel.setText("GDAX");
         } else if (currentExchange == Exchange.KRAKEN) {
             exchangeLabel.setText("Kraken");
-        } else if (currentExchange == Exchange.BITFINEX) {
-            exchangeLabel.setText("Bitfinex");
+        } else if (currentExchange == Exchange.BITSTAMP) {
+            exchangeLabel.setText("Bitstamp");
         } else {
             //TODO not a nice Error message
             System.out.println("not a valid exchange");
@@ -115,7 +145,6 @@ public class EtherCheckerGUI {
         }
 
         String exchange;
-
     }
 
     private String determineURL(Exchange currentExchange, TradingPair currentTradingPair) {
@@ -128,8 +157,8 @@ public class EtherCheckerGUI {
             case KRAKEN:
                 url = url.concat("kraken/");
                 break;
-            case BITFINEX:
-                url = url.concat("bitfinex/");
+            case BITSTAMP:
+                url = url.concat("bitstamp/");
                 break;
         }
 
@@ -220,7 +249,7 @@ public class EtherCheckerGUI {
         final Spacer spacer6 = new Spacer();
         priceDisplayPanel.add(spacer6, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         generalInfoPanel = new JPanel();
-        generalInfoPanel.setLayout(new GridLayoutManager(5, 3, new Insets(0, 0, 0, 0), -1, -1));
+        generalInfoPanel.setLayout(new GridLayoutManager(6, 3, new Insets(0, 0, 0, 0), -1, -1));
         topLevelPanel.add(generalInfoPanel, new GridConstraints(3, 0, 1, 4, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         final JLabel label2 = new JLabel();
         label2.setText("Price Updated every 1sec");
@@ -240,6 +269,9 @@ public class EtherCheckerGUI {
         generalInfoPanel.add(alwaysOnTopCheckBox, new GridConstraints(3, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         progressBar = new JProgressBar();
         generalInfoPanel.add(progressBar, new GridConstraints(4, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        logButton = new JButton();
+        logButton.setText("show log");
+        generalInfoPanel.add(logButton, new GridConstraints(5, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         listPanel = new JPanel();
         listPanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
         topLevelPanel.add(listPanel, new GridConstraints(0, 0, 1, 4, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
@@ -249,7 +281,7 @@ public class EtherCheckerGUI {
         final DefaultListModel defaultListModel1 = new DefaultListModel();
         defaultListModel1.addElement("GDAX");
         defaultListModel1.addElement("Kraken");
-        defaultListModel1.addElement("Bitfinex");
+        defaultListModel1.addElement("Bitstamp");
         exchangesList.setModel(defaultListModel1);
         exchangesList.setSelectedIndex(0);
         scrollPane1.setViewportView(exchangesList);
