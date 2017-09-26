@@ -7,15 +7,15 @@ import java.net.URL;
 import com.google.gson.Gson;
 
 class CryptowatchAPIHandler {
-	/**
-	 * 
-	 * 
-	 * @param url The URL of the API
-	 * @return Returns the market price as a Double
-	 * @throws Exception might throw an Exception
-	 * 
-	 */
 
+	/**
+     * Interprets a Json String as a PriceResponse Object by using getJsonFromURL().
+     * Returns the market price as a Double.
+     *
+     * @param url The URL of the API (Cryptowatch)
+     * @return Returns the market price as a Double
+	 * @throws Exception might throw an Exception
+	 */
 	Double getCryptowatchPrice(URL url) throws Exception {
 
 		String jsonString = getJsonFromURL(url);
@@ -28,7 +28,15 @@ class CryptowatchAPIHandler {
 		return priceResponse.result.price;
 	}
 
-	private String getJsonFromURL(URL url) throws Exception {
+    /**
+     * Fetches a Json String from the InputStream created when calling URL.openStream().
+     * Uses BufferedReader and InputStreamReader to read and interpret data from the InputStream.
+     *
+     * @param url
+     * @return
+     * @throws Exception
+     */
+    private String getJsonFromURL(URL url) throws Exception {
 
 		BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
 

@@ -1,7 +1,5 @@
 package code;
 
-import java.awt.Dimension;
-
 public class Main {
 
     /**

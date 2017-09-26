@@ -7,7 +7,6 @@ import com.intellij.uiDesigner.core.Spacer;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.net.URL;
 
 public class EtherCheckerGUI {
@@ -52,6 +51,12 @@ public class EtherCheckerGUI {
 
     }
 
+    /**
+     * Fetches the current ETHUSD price on GDAX by calling the getCryptoWatchPrice() method of the CryptoWatchAPIHandler
+     * class.
+     *
+     * @throws Exception update() can throw an Exception if the API call fails.
+     */
     void update() throws Exception {
         System.out.println("tick");
 
