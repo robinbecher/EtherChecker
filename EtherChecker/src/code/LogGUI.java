@@ -5,6 +5,7 @@ import com.intellij.uiDesigner.core.GridLayoutManager;
 
 import javax.swing.*;
 import java.awt.*;
+import java.time.Instant;
 
 public class LogGUI extends JFrame {
     JPanel contentPanel;
@@ -18,7 +19,10 @@ public class LogGUI extends JFrame {
     }
 
     void log(String string) {
-        log.setText(log.getText().concat("\n" + string));
+        long timestamp = System.currentTimeMillis();
+        Instant instant = Instant.ofEpochMilli(timestamp);
+
+        log.setText(log.getText().concat("\n" + instant + string));
     }
 
     {

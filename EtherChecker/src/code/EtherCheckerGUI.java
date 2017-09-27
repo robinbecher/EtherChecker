@@ -14,7 +14,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.*;
 
@@ -41,12 +40,15 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
     private JTextField walletTextField;
     private JLabel ethAmount;
     private JLabel walletInfoLabel;
+    private JTextField apiKeyTextField;
+    private JButton checkButton;
     private static final APIHandler api = new APIHandler();
     private Exchange currentExchange = Exchange.GDAX;
     private TradingPair currentTradingPair = TradingPair.ETHUSD;
     private JFrame frame;
     private LogGUI logGui;
-    private long timeOut;
+    private long coolDown, startTime;
+    private String apiKey;
 
     /**
      * Creating an Object of EtherCheckerGUI spawns a frame in the center of the screen,
@@ -65,11 +67,13 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
         logGui = new LogGUI();
         logGui.setLocationRelativeTo(logButton);
 
+        startTime = System.currentTimeMillis();
 
         alwaysOnTopCheckBox.addItemListener(this);
         exchangesList.addListSelectionListener(this);
         tradingPairList.addListSelectionListener(this);
         logButton.addActionListener(this);
+        checkButton.addActionListener(this);
         walletTextField.getDocument().addDocumentListener(new DocumentListener() {
 
             @Override
@@ -88,15 +92,15 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
             }
 
             private void doStuff() {
-                if (System.currentTimeMillis() - timeOut >= 500) {
+                if (!isCoolingDown()) {
                     try {
                         checkWallet();
-                        timeOut = System.currentTimeMillis();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 } else {
-                    System.out.println("Timeout still active");
+                    System.out.println(Constants.COOLDOWN_ERROR);
+                    logGui.log(Constants.COOLDOWN_ERROR);
                 }
             }
         });
@@ -105,11 +109,13 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
     private void checkWallet() throws Exception {
 
         String walletAddress = walletTextField.getText();
+        apiKey = apiKeyTextField.getText();
 
         if (walletAddress.length() != 42 || !walletAddress.startsWith("0x")) {
             walletInfoLabel.setText(Constants.INVALID_ADDRESS);
         } else {
             walletInfoLabel.setText(Constants.VALID_ADDRESS);
+            coolDown = System.currentTimeMillis();
             EtherscanWalletResponse response = api.getEtherscanWalletInfo(new URL(determineURLEtherscanWallet(walletAddress)));
             System.out.println(response.result);
             ethAmount.setText(trimETHValue(response.result));
@@ -132,12 +138,27 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
             String mantissa = result.substring(result.length() - 18, result.length());
 
             base = groupDigits(Long.valueOf(base));
+            mantissa = removeTrailingZeroes(mantissa);
 
             result = base + "." + mantissa;
         }
 
         return result;
 
+    }
+
+    private String removeTrailingZeroes(String mantissa) {
+        String newMantissa = mantissa;
+        boolean done = false;
+        while (!done) {
+            if (newMantissa.endsWith("0")) {
+                newMantissa = newMantissa.substring(0, newMantissa.length() - 1);
+            } else {
+                done = true;
+            }
+        }
+
+        return newMantissa;
     }
 
     public static String groupDigits(long number) {
@@ -163,8 +184,7 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
 
     private String determineURLEtherscanWallet(String walletAddress) {
 
-        return new String("https://api.etherscan.io/api?module=account&action=balance&address=" + walletAddress + "&tag=latest&apikey=" + Constants.API_KEY);
-
+        return new String("https://api.etherscan.io/api?module=account&action=balance&address=" + walletAddress + "&tag=latest&apikey=" + apiKey);
     }
 
     /**
@@ -174,6 +194,11 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
      * @throws Exception update() can throw an Exception if the API call fails.
      */
     void update() throws Exception {
+        long nowtime = System.currentTimeMillis();
+        if ((nowtime - startTime) > 600000) {
+            logGui.log.setText("");
+            startTime = nowtime;
+        }
 
         URL url = new URL(determineURLCryptowatchMarketPrice(currentExchange, currentTradingPair));
 
@@ -212,11 +237,7 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
                 break;
         }
 
-        long timestamp = System.currentTimeMillis();
-        Instant instant = Instant.ofEpochMilli(timestamp);
-
-
-        logGui.log(instant + "," + currentExchange + "," + currentTradingPair + "," + priceResponse.result.price + "," + priceResponse.allowance.cost + "," + priceResponse.allowance.remaining);
+        logGui.log(currentExchange + "," + currentTradingPair + "," + priceResponse.result.price + "," + priceResponse.allowance.cost + "," + priceResponse.allowance.remaining);
     }
 
     private String determineURLCryptowatchMarketPrice(Exchange currentExchange, TradingPair currentTradingPair) {
@@ -309,9 +330,32 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (!this.logGui.isVisible()) {
-            alwaysOnTopCheckBox.setSelected(false);
-            this.logGui.setVisible(true);
+        Object source = e.getSource();
+        if (source == logButton) {
+            if (!this.logGui.isVisible()) {
+                alwaysOnTopCheckBox.setSelected(false);
+                this.logGui.setVisible(true);
+            }
+        } else if (source == checkButton) {
+            if (!isCoolingDown()) {
+                try {
+                    checkWallet();
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                }
+            } else {
+                System.out.println(Constants.COOLDOWN_ERROR);
+                logGui.log(Constants.COOLDOWN_ERROR);
+            }
+
+        }
+    }
+
+    private boolean isCoolingDown() {
+        if (System.currentTimeMillis() - coolDown >= 500) {
+            return false;
+        } else {
+            return true;
         }
     }
 
@@ -430,11 +474,11 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
         logButton.setText("show log");
         generalInfoPanel.add(logButton, new GridConstraints(5, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         walletTab = new JPanel();
-        walletTab.setLayout(new GridLayoutManager(3, 1, new Insets(0, 0, 0, 0), -1, -1));
+        walletTab.setLayout(new GridLayoutManager(5, 1, new Insets(0, 0, 0, 0), -1, -1));
         tabbedPane1.addTab("Wallets", walletTab);
         walletTab.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLoweredBevelBorder(), null));
         final JPanel panel1 = new JPanel();
-        panel1.setLayout(new GridLayoutManager(3, 3, new Insets(0, 0, 0, 0), -1, -1));
+        panel1.setLayout(new GridLayoutManager(3, 4, new Insets(0, 0, 0, 0), -1, -1));
         walletTab.add(panel1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         final JLabel label4 = new JLabel();
         label4.setText("Enter Wallet Address");
@@ -444,19 +488,37 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
         walletInfoLabel = new JLabel();
         walletInfoLabel.setText("Please enter your wallet address above");
         panel1.add(walletInfoLabel, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        checkButton = new JButton();
+        checkButton.setText("Check");
+        panel1.add(checkButton, new GridConstraints(1, 3, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final JPanel panel2 = new JPanel();
-        panel2.setLayout(new GridLayoutManager(2, 2, new Insets(0, 0, 0, 0), -1, -1));
-        walletTab.add(panel2, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        panel2.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+        walletTab.add(panel2, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         final JLabel label5 = new JLabel();
         label5.setText("Current ETH holdings:");
         panel2.add(label5, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        final Spacer spacer10 = new Spacer();
-        panel2.add(spacer10, new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         ethAmount = new JLabel();
-        ethAmount.setText("amount");
+        Font ethAmountFont = this.$$$getFont$$$(null, -1, 24, ethAmount.getFont());
+        if (ethAmountFont != null) ethAmount.setFont(ethAmountFont);
+        ethAmount.setText("");
         panel2.add(ethAmount, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JPanel panel3 = new JPanel();
+        panel3.setLayout(new GridLayoutManager(3, 2, new Insets(0, 0, 0, 0), -1, -1));
+        panel3.setEnabled(true);
+        panel3.setVisible(false);
+        walletTab.add(panel3, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        final JLabel label6 = new JLabel();
+        label6.setText("API Key:");
+        panel3.add(label6, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        apiKeyTextField = new JTextField();
+        panel3.add(apiKeyTextField, new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
+        final JLabel label7 = new JLabel();
+        label7.setText("Please enter a valid API Key above. You can get one here: https://etherscan.io/myapikey");
+        panel3.add(label7, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final Spacer spacer10 = new Spacer();
+        walletTab.add(spacer10, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         final Spacer spacer11 = new Spacer();
-        walletTab.add(spacer11, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        walletTab.add(spacer11, new GridConstraints(4, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
     }
 
     /**
