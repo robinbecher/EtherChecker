@@ -8,13 +8,17 @@ import java.awt.*;
 
 public class LogGUI extends JFrame {
     JPanel contentPanel;
-    private JTextPane textPane;
+    JTextPane log;
 
     LogGUI() {
         setContentPane(contentPanel);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         pack();
         setVisible(false);
+    }
+
+    void log(String string) {
+        log.setText(log.getText().toString().concat("\n" + string));
     }
 
     {
@@ -34,8 +38,13 @@ public class LogGUI extends JFrame {
     private void $$$setupUI$$$() {
         contentPanel = new JPanel();
         contentPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
-        textPane = new JTextPane();
-        contentPanel.add(textPane, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_WANT_GROW, null, new Dimension(150, 50), null, 0, false));
+        final JScrollPane scrollPane1 = new JScrollPane();
+        scrollPane1.setAutoscrolls(true);
+        contentPanel.add(scrollPane1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        scrollPane1.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLoweredBevelBorder(), null));
+        log = new JTextPane();
+        log.setEditable(false);
+        scrollPane1.setViewportView(log);
     }
 
     /**

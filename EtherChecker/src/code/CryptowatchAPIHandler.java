@@ -20,8 +20,6 @@ class CryptowatchAPIHandler {
 
 		String jsonString = getJsonFromURL(url);
 
-		System.out.println(jsonString);
-
 		Gson g = new Gson();
 		PriceResponse priceResponse = g.fromJson(jsonString, PriceResponse.class);
 

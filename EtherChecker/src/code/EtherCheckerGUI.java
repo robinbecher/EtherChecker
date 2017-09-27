@@ -17,7 +17,7 @@ import java.net.URL;
 /**
  *
  */
-public class EtherCheckerGUI implements ListSelectionListener,ItemListener,ActionListener {
+public class EtherCheckerGUI implements ListSelectionListener, ItemListener, ActionListener {
     private JPanel priceDisplayPanel;
     private JPanel selectionInfoPanel;
     private JPanel generalInfoPanel;
@@ -68,8 +68,6 @@ public class EtherCheckerGUI implements ListSelectionListener,ItemListener,Actio
      * @throws Exception update() can throw an Exception if the API call fails.
      */
     void update() throws Exception {
-        System.out.println(currentExchange.toString());
-        System.out.println(currentTradingPair.toString());
 
         URL url = new URL(determineURL(currentExchange, currentTradingPair));
 
@@ -80,6 +78,7 @@ public class EtherCheckerGUI implements ListSelectionListener,ItemListener,Actio
         priceLabel.setText(priceResponse.result.price.toString());
         progressBar.setIndeterminate(false);
 
+
         if (currentExchange == Exchange.GDAX) {
             exchangeLabel.setText("GDAX");
         } else if (currentExchange == Exchange.KRAKEN) {
@@ -87,20 +86,27 @@ public class EtherCheckerGUI implements ListSelectionListener,ItemListener,Actio
         } else if (currentExchange == Exchange.BITSTAMP) {
             exchangeLabel.setText("Bitstamp");
         } else {
-            //TODO not a nice Error message
-            System.out.println("not a valid exchange");
+            logGui.log(Constants.EXCHANGE_ERROR);
+            System.out.println(Constants.EXCHANGE_ERROR);
         }
 
-        if (currentTradingPair == TradingPair.ETHUSD) {
-            marketLabel.setText("ETH/USD");
-        } else if (currentTradingPair == TradingPair.ETHEUR) {
-            marketLabel.setText("ETH/EUR");
-        } else if (currentTradingPair == TradingPair.ETHBTC) {
-            marketLabel.setText("ETH/BTC");
-        } else {
-            System.out.println("not a valid trading pair");
+        switch (currentTradingPair) {
+            case ETHUSD:
+                marketLabel.setText("ETH/USD");
+                break;
+            case ETHEUR:
+                marketLabel.setText("ETH/EUR");
+                break;
+            case ETHBTC:
+                marketLabel.setText("ETH/BTC");
+                break;
+            default:
+                logGui.log(Constants.TRADINGPAIR_ERROR);
+                System.out.println(Constants.TRADINGPAIR_ERROR);
+                break;
         }
 
+        logGui.log(currentExchange + "," + currentTradingPair + "," + priceResponse.result.price + "," + priceResponse.allowance.cost + "," + priceResponse.allowance.remaining);
     }
 
     private String determineURL(Exchange currentExchange, TradingPair currentTradingPair) {
@@ -150,6 +156,63 @@ public class EtherCheckerGUI implements ListSelectionListener,ItemListener,Actio
             }
         }
         return new Font(resultName, style >= 0 ? style : currentFont.getStyle(), size >= 0 ? size : currentFont.getSize());
+    }
+
+    @Override
+    public void valueChanged(ListSelectionEvent e) {
+        Object source = e.getSource();
+
+        if (source == exchangesList) {
+            if (exchangesList.isSelectedIndex(0)) {
+                currentExchange = Exchange.GDAX;
+            } else if (exchangesList.isSelectedIndex(1)) {
+                currentExchange = Exchange.KRAKEN;
+            } else if (exchangesList.isSelectedIndex(2)) {
+                currentExchange = Exchange.BITSTAMP;
+            } else {
+                logGui.log(Constants.EXCHANGE_ERROR);
+                System.out.println(Constants.EXCHANGE_ERROR);
+            }
+        } else if (source == tradingPairList) {
+            if (tradingPairList.isSelectedIndex(0)) {
+                currentTradingPair = TradingPair.ETHUSD;
+            } else if (tradingPairList.isSelectedIndex(1)) {
+                currentTradingPair = TradingPair.ETHEUR;
+            } else if (tradingPairList.isSelectedIndex(2)) {
+                currentTradingPair = TradingPair.ETHBTC;
+            } else {
+                logGui.log(Constants.TRADINGPAIR_ERROR);
+                System.out.println(Constants.TRADINGPAIR_ERROR);
+            }
+
+        }
+
+        try {
+            update();
+        } catch (Exception e1) {
+            e1.printStackTrace();
+            logGui.log(e1.toString());
+        }
+
+
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (!this.logGui.isVisible()) {
+            alwaysOnTopCheckBox.setSelected(false);
+            this.logGui.setVisible(true);
+        }
+    }
+
+    @Override
+    public void itemStateChanged(ItemEvent e) {
+//        Object source = e.getItemSelectable();
+        if (e.getStateChange() == ItemEvent.DESELECTED) {
+            this.frame.setAlwaysOnTop(false);
+        } else {
+            this.frame.setAlwaysOnTop(true);
+        }
     }
 
     {
@@ -257,58 +320,5 @@ public class EtherCheckerGUI implements ListSelectionListener,ItemListener,Actio
      */
     public JComponent $$$getRootComponent$$$() {
         return topLevelPanel;
-    }
-
-    @Override
-    public void valueChanged(ListSelectionEvent e) {
-        Object source = e.getSource();
-
-        if (source == exchangesList) {
-            if (exchangesList.isSelectedIndex(0)) {
-                currentExchange = Exchange.GDAX;
-            } else if (exchangesList.isSelectedIndex(1)) {
-                currentExchange = Exchange.KRAKEN;
-            } else if (exchangesList.isSelectedIndex(2)) {
-                currentExchange = Exchange.BITSTAMP;
-            } else {
-                System.out.println("Exchange Error");
-            }
-        } else if (source == tradingPairList) {
-            if (tradingPairList.isSelectedIndex(0)) {
-                currentTradingPair = TradingPair.ETHUSD;
-            } else if (tradingPairList.isSelectedIndex(1)) {
-                currentTradingPair = TradingPair.ETHEUR;
-            } else if (tradingPairList.isSelectedIndex(2)) {
-                currentTradingPair = TradingPair.ETHBTC;
-            } else {
-                System.out.println("Trading pair Error");
-            }
-
-        }
-
-        try {
-            update();
-        } catch (Exception e1) {
-            e1.printStackTrace();
-        }
-
-
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        if (!this.logGui.isVisible()) {
-            this.logGui.setVisible(true);
-        }
-    }
-
-    @Override
-    public void itemStateChanged(ItemEvent e) {
-//        Object source = e.getItemSelectable();
-        if (e.getStateChange() == ItemEvent.DESELECTED) {
-            this.frame.setAlwaysOnTop(false);
-        } else {
-            this.frame.setAlwaysOnTop(true);
-        }
     }
 }
