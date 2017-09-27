@@ -18,7 +18,7 @@ public class LogGUI extends JFrame {
     }
 
     void log(String string) {
-        log.setText(log.getText().toString().concat("\n" + string));
+        log.setText(log.getText().concat("\n" + string));
     }
 
     {
@@ -39,7 +39,7 @@ public class LogGUI extends JFrame {
         contentPanel = new JPanel();
         contentPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
         final JScrollPane scrollPane1 = new JScrollPane();
-        scrollPane1.setAutoscrolls(true);
+        scrollPane1.setAutoscrolls(false);
         contentPanel.add(scrollPane1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         scrollPane1.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLoweredBevelBorder(), null));
         log = new JTextPane();

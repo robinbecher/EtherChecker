@@ -1,6 +1,6 @@
 package code;
 
-class PriceResponse {
+class CryptowatchMarketPriceResponse {
 
 	Result result;
 	Allowance allowance;
