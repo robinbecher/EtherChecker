@@ -7,7 +7,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.*;
 import java.time.Instant;
-import java.util.ArrayList;
 
 public class LogGUI extends JFrame {
     private String path;
@@ -61,7 +60,6 @@ public class LogGUI extends JFrame {
         File f = new File(path + File.separator + "log.txt");
         System.out.println(f);
         FileWriter fw = new FileWriter(f, false);
-//        System.out.println(fw);
 
         try {
             BufferedWriter bw = new BufferedWriter(fw);
@@ -72,7 +70,7 @@ public class LogGUI extends JFrame {
             bw.flush();
             bw.close();
         } catch (Exception e) {
-            System.out.println(e);
+            System.out.println(e.toString());
         }
     }
 

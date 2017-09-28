@@ -48,6 +48,8 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
     private LogGUI logGui;
     private long coolDown, startTime;
     private String apiKey;
+    private CryptowatchMarketPriceResponse priceResponse;
+    private URL url;
 
     /**
      * Creating an Object of EtherCheckerGUI spawns a frame in the center of the screen,
@@ -103,22 +105,35 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
                 }
             }
         });
+
     }
 
     private void checkWallet() throws Exception {
 
-        String walletAddress = walletTextField.getText();
-        apiKey = apiKeyTextField.getText();
+        Thread thread = new Thread(() -> {
+            String walletAddress = walletTextField.getText();
+            apiKey = apiKeyTextField.getText();
 
-        if (walletAddress.length() != 42 || !walletAddress.startsWith("0x")) {
-            walletInfoLabel.setText(Constants.INVALID_ADDRESS);
-        } else {
-            walletInfoLabel.setText(Constants.VALID_ADDRESS);
-            coolDown = System.currentTimeMillis();
-            EtherscanWalletResponse response = api.getEtherscanWalletInfo(new URL(determineURLEtherscanWallet(walletAddress)));
-            System.out.println(response.result);
-            ethAmount.setText(trimETHValue(response.result) + " Ether");
-        }
+            if (walletAddress.length() != 42 || !walletAddress.startsWith("0x")) {
+                walletInfoLabel.setText(Constants.INVALID_ADDRESS);
+            } else {
+                walletInfoLabel.setText(Constants.VALID_ADDRESS);
+                coolDown = System.currentTimeMillis();
+                EtherscanWalletResponse response = null;
+                try {
+                    response = api.getEtherscanWalletInfo(new URL(determineURLEtherscanWallet(walletAddress)));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                if (response != null) {
+                    System.out.println(response.result);
+                    ethAmount.setText(trimETHValue(response.result) + " Ether");
+                }
+            }
+        });
+        thread.start();
+
 
     }
 
@@ -160,7 +175,7 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
         return newMantissa;
     }
 
-    public static String groupDigits(long number) {
+    private static String groupDigits(long number) {
 
         String text = String.valueOf(number);
         String newText = "";
@@ -183,7 +198,7 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
 
     private String determineURLEtherscanWallet(String walletAddress) {
 
-        return new String("https://api.etherscan.io/api?module=account&action=balance&address=" + walletAddress + "&tag=latest&apikey=" + apiKey);
+        return "https://api.etherscan.io/api?module=account&action=balance&address=" + walletAddress + "&tag=latest&apikey=" + apiKey;
     }
 
     /**
@@ -193,16 +208,13 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
      * @throws Exception update() can throw an Exception if the API call fails.
      */
     void update() throws Exception {
+
         long nowtime = System.currentTimeMillis();
         if ((nowtime - startTime) > 600000) {
             logGui.log.setText("");
             startTime = nowtime;
         }
-
-
-        URL url = new URL(determineURLCryptowatchMarketPrice(currentExchange, currentTradingPair));
-
-        CryptowatchMarketPriceResponse priceResponse;
+        url = new URL(determineURLCryptowatchMarketPrice(currentExchange, currentTradingPair));
 
         progressBar.setIndeterminate(true);
         priceResponse = api.getCryptowatchPrice(url);
@@ -236,7 +248,6 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
                 System.out.println(Constants.TRADINGPAIR_ERROR);
                 break;
         }
-
         logGui.log(currentExchange + "," + currentTradingPair + "," + priceResponse.result.price + "," + priceResponse.allowance.cost + "," + priceResponse.allowance.remaining);
     }
 
@@ -291,7 +302,7 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
 
     @Override
     public void valueChanged(ListSelectionEvent e) {
-        Object source = e.getSource();
+        JList source = (JList) e.getSource();
 
         if (source == exchangesList) {
             if (exchangesList.isSelectedIndex(0)) {
@@ -318,13 +329,14 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
 
         }
 
-        try {
-            update();
-        } catch (Exception e1) {
-            e1.printStackTrace();
-            logGui.log(e1.toString());
-        }
-
+        Thread thread = new Thread(() -> {
+            try {
+                update();
+            } catch (Exception e1) {
+                e1.printStackTrace();
+            }
+        });
+        thread.start();
 
     }
 
@@ -352,11 +364,7 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
     }
 
     private boolean isCoolingDown() {
-        if (System.currentTimeMillis() - coolDown >= 500) {
-            return false;
-        } else {
-            return true;
-        }
+        return System.currentTimeMillis() - coolDown < 500;
     }
 
     @Override
