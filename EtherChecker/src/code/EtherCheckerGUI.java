@@ -369,7 +369,6 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
 
     @Override
     public void itemStateChanged(ItemEvent e) {
-//        Object source = e.getItemSelectable();
         if (e.getStateChange() == ItemEvent.DESELECTED) {
             this.frame.setAlwaysOnTop(false);
         } else {

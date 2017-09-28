@@ -3,7 +3,8 @@ package code;
 public class EtherChecker {
 
     /**
-     * Executing the main method spawns an instance of the EtherCheckerGUI and updates it every 5sec.
+     * Executing the main method spawns an instance of the EtherCheckerGUI and updates it every 1sec.
+     *
      *
      *
      * @param args default
