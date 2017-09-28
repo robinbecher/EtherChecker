@@ -15,7 +15,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.net.URL;
-import java.time.*;
 
 /**
  *
@@ -118,7 +117,7 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
             coolDown = System.currentTimeMillis();
             EtherscanWalletResponse response = api.getEtherscanWalletInfo(new URL(determineURLEtherscanWallet(walletAddress)));
             System.out.println(response.result);
-            ethAmount.setText(trimETHValue(response.result));
+            ethAmount.setText(trimETHValue(response.result) + " Ether");
         }
 
     }
@@ -199,6 +198,7 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
             logGui.log.setText("");
             startTime = nowtime;
         }
+
 
         URL url = new URL(determineURLCryptowatchMarketPrice(currentExchange, currentTradingPair));
 

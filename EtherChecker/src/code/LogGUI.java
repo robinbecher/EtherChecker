@@ -5,17 +5,26 @@ import com.intellij.uiDesigner.core.GridLayoutManager;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.*;
 import java.time.Instant;
+import java.util.ArrayList;
 
 public class LogGUI extends JFrame {
+    private String path;
     JPanel contentPanel;
     JTextPane log;
+    private File customDir;
 
     LogGUI() {
         setContentPane(contentPanel);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         pack();
         setVisible(false);
+
+        path = System.getProperty("user.home") + File.separator + "Documents";
+        path += File.separator + "EtherChecker";
+        customDir = new File(path);
+
     }
 
     void log(String string) {
@@ -23,6 +32,48 @@ public class LogGUI extends JFrame {
         Instant instant = Instant.ofEpochMilli(timestamp);
 
         log.setText(log.getText().concat("\n" + instant + string));
+
+//        if (customDir.exists()) {
+//            try {
+//                saveToDisk(string);
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//        } else {
+//            try {
+//                createDirectory();
+//                System.out.println("Directory created");
+//                saveToDisk(string);
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//        }
+    }
+
+    private void createDirectory() throws Exception {
+        if (!customDir.mkdirs()) {
+            throw new Exception();
+        }
+    }
+
+    private void saveToDisk(String text) throws IOException {
+
+        File f = new File(path + File.separator + "log.txt");
+        System.out.println(f);
+        FileWriter fw = new FileWriter(f, false);
+//        System.out.println(fw);
+
+        try {
+            BufferedWriter bw = new BufferedWriter(fw);
+            System.out.println(text);
+
+            bw.write(text);
+
+            bw.flush();
+            bw.close();
+        } catch (Exception e) {
+            System.out.println(e);
+        }
     }
 
     {
