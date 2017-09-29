@@ -95,7 +95,8 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
             private void doStuff() {
                 if (!isCoolingDown()) {
                     try {
-                        checkWallet();
+                        if (walletFormatIsOkay())
+                            checkWallet();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -114,23 +115,20 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
             String walletAddress = walletTextField.getText();
             apiKey = apiKeyTextField.getText();
 
-            if (walletAddress.length() != 42 || !walletAddress.startsWith("0x")) {
-                walletInfoLabel.setText(Constants.INVALID_ADDRESS);
-            } else {
-                walletInfoLabel.setText(Constants.VALID_ADDRESS);
-                coolDown = System.currentTimeMillis();
-                EtherscanWalletResponse response = null;
-                try {
-                    response = api.getEtherscanWalletInfo(new URL(determineURLEtherscanWallet(walletAddress)));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-                if (response != null) {
-                    System.out.println(response.result);
-                    ethAmount.setText(trimETHValue(response.result) + " Ether");
-                }
+            walletInfoLabel.setText(Constants.VALID_ADDRESS);
+            coolDown = System.currentTimeMillis();
+            EtherscanWalletResponse response = null;
+            try {
+                response = api.getEtherscanWalletInfo(new URL(determineURLEtherscanWallet(walletAddress)));
+            } catch (Exception e) {
+                e.printStackTrace();
             }
+
+            if (response != null) {
+                System.out.println(response.result);
+                ethAmount.setText(trimETHValue(response.result) + " Ether");
+            }
+
         });
         thread.start();
 
@@ -351,7 +349,8 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
         } else if (source == checkButton) {
             if (!isCoolingDown()) {
                 try {
-                    checkWallet();
+                    if (walletFormatIsOkay())
+                        checkWallet();
                 } catch (Exception e1) {
                     e1.printStackTrace();
                 }
@@ -360,6 +359,17 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
                 logGui.log(Constants.COOLDOWN_ERROR);
             }
 
+        }
+    }
+
+    private boolean walletFormatIsOkay() {
+        String walletAddress = walletTextField.getText();
+        if (walletAddress.length() != 42 || !walletAddress.startsWith("0x")) {
+            walletInfoLabel.setText(Constants.INVALID_ADDRESS);
+            return false;
+        } else {
+            walletInfoLabel.setText(Constants.VALID_ADDRESS);
+            return true;
         }
     }
 
