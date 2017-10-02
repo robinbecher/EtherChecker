@@ -1,5 +1,5 @@
 package code;
 
-public enum TradingPair {
+public enum CurrencyPair {
     ETHUSD, ETHEUR, ETHBTC
 }

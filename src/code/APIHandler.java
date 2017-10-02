@@ -21,9 +21,8 @@ class APIHandler {
         String jsonString = getJsonFromURL(url);
 
         Gson g = new Gson();
-        CryptowatchMarketPriceResponse priceResponse = g.fromJson(jsonString, CryptowatchMarketPriceResponse.class);
 
-        return priceResponse;
+        return g.fromJson(jsonString, CryptowatchMarketPriceResponse.class);
     }
 
     EtherscanWalletResponse getEtherscanWalletInfo(URL url) throws Exception {
@@ -32,18 +31,17 @@ class APIHandler {
         System.out.println(jsonString);
 
         Gson g = new Gson();
-        EtherscanWalletResponse walletResponse = g.fromJson(jsonString, EtherscanWalletResponse.class);
 
-        return walletResponse;
+        return g.fromJson(jsonString, EtherscanWalletResponse.class);
     }
 
     /**
      * Fetches a Json String from the InputStream created when calling URL.openStream().
      * Uses BufferedReader and InputStreamReader to read and interpret data from the InputStream.
      *
-     * @param url
-     * @return
-     * @throws Exception
+     * @param url The URL, from which the Json should be retrieved
+     * @return returns the Json in String format
+     * @throws Exception an Exception can occur, if the URL is invalid
      */
     private String getJsonFromURL(URL url) throws Exception {
 

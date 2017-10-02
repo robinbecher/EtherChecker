@@ -27,4 +27,7 @@
       </scrollpane>
     </children>
   </grid>
+  <inspectionSuppressions>
+    <suppress inspection="NoLabelFor" id="4fe12"/>
+  </inspectionSuppressions>
 </form>

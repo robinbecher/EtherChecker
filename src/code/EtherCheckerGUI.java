@@ -19,7 +19,8 @@ import java.net.URL;
 /**
  *
  */
-public class EtherCheckerGUI implements ListSelectionListener, ItemListener, ActionListener {
+@SuppressWarnings("BooleanMethodIsAlwaysInverted")
+class EtherCheckerGUI implements ListSelectionListener, ItemListener, ActionListener {
     private JPanel priceDisplayPanel;
     private JPanel selectionInfoPanel;
     private JPanel generalInfoPanel;
@@ -41,22 +42,24 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
     private JLabel walletInfoLabel;
     private JTextField apiKeyTextField;
     private JButton checkButton;
+    private JMenuBar menuBar;
+    private JPanel menuPanel;
     private static final APIHandler api = new APIHandler();
     private Exchange currentExchange = Exchange.GDAX;
-    private TradingPair currentTradingPair = TradingPair.ETHUSD;
+    private CurrencyPair currentCurrencyPair = CurrencyPair.ETHUSD;
     private JFrame frame;
     private LogGUI logGui;
     private long coolDown, startTime;
     private String apiKey;
-    private CryptowatchMarketPriceResponse priceResponse;
-    private URL url;
 
     /**
      * Creating an Object of EtherCheckerGUI spawns a frame in the center of the screen,
      * fills it with components and displays the current ETHUSD price on GDAX. The frame can be set to be always on top
      * by using the alwaysOnTopCheckBox. "Always on top" is the default setting.
+     * Using the two JLists, you can choose an exchange and a trading pair
      */
-    EtherCheckerGUI() {
+    EtherCheckerGUI() throws ClassNotFoundException, UnsupportedLookAndFeelException, InstantiationException, IllegalAccessException {
+        UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
         frame = new JFrame("EtherChecker");
         frame.setContentPane(this.topLevelPanel);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -67,6 +70,15 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
 
         logGui = new LogGUI();
         logGui.setLocationRelativeTo(logButton);
+
+        // This does not yet work as intended
+        JMenuBar menuBar = new JMenuBar();
+        menuPanel.add(menuBar, new GridConstraints(), 0);
+        JMenu settingsMenu = new JMenu("Settings");
+        JMenuItem languageSettings = new JMenuItem("Language settings");
+        settingsMenu.add(languageSettings);
+        menuBar.add(settingsMenu);
+        menuBar.add(Box.createHorizontalGlue());
 
         startTime = System.currentTimeMillis();
 
@@ -106,10 +118,9 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
                 }
             }
         });
-
     }
 
-    private void checkWallet() throws Exception {
+    private void checkWallet() {
 
         Thread thread = new Thread(() -> {
             String walletAddress = walletTextField.getText();
@@ -131,8 +142,6 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
 
         });
         thread.start();
-
-
     }
 
     private String determineURLEtherscanWallet(String walletAddress) {
@@ -153,10 +162,10 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
             logGui.log.setText("");
             startTime = nowtime;
         }
-        url = new URL(determineURLCryptowatchMarketPrice(currentExchange, currentTradingPair));
+        URL url = new URL(determineURLCryptowatchMarketPrice(currentExchange, currentCurrencyPair));
 
         progressBar.setIndeterminate(true);
-        priceResponse = api.getCryptowatchPrice(url);
+        CryptowatchMarketPriceResponse priceResponse = api.getCryptowatchPrice(url);
         priceLabel.setText(priceResponse.result.price.toString());
         progressBar.setIndeterminate(false);
 
@@ -172,7 +181,7 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
             System.out.println(Constants.EXCHANGE_ERROR);
         }
 
-        switch (currentTradingPair) {
+        switch (currentCurrencyPair) {
             case ETHUSD:
                 marketLabel.setText("ETH/USD");
                 break;
@@ -183,14 +192,14 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
                 marketLabel.setText("ETH/BTC");
                 break;
             default:
-                logGui.log(Constants.TRADINGPAIR_ERROR);
-                System.out.println(Constants.TRADINGPAIR_ERROR);
+                logGui.log(Constants.CURRENCYPAIR_ERROR);
+                System.out.println(Constants.CURRENCYPAIR_ERROR);
                 break;
         }
-        logGui.log(currentExchange + "," + currentTradingPair + "," + priceResponse.result.price + "," + priceResponse.allowance.cost + "," + priceResponse.allowance.remaining);
+        logGui.log(currentExchange + "," + currentCurrencyPair + "," + priceResponse.result.price + "," + priceResponse.allowance.cost + "," + priceResponse.allowance.remaining);
     }
 
-    private String determineURLCryptowatchMarketPrice(Exchange currentExchange, TradingPair currentTradingPair) {
+    private String determineURLCryptowatchMarketPrice(Exchange currentExchange, CurrencyPair currentCurrencyPair) {
         String url = "https://api.cryptowat.ch/markets/";
 
         switch (currentExchange) {
@@ -205,7 +214,7 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
                 break;
         }
 
-        switch (currentTradingPair) {
+        switch (currentCurrencyPair) {
             case ETHUSD:
                 url = url.concat("ethusd/price");
                 break;
@@ -256,14 +265,14 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
             }
         } else if (source == tradingPairList) {
             if (tradingPairList.isSelectedIndex(0)) {
-                currentTradingPair = TradingPair.ETHUSD;
+                currentCurrencyPair = CurrencyPair.ETHUSD;
             } else if (tradingPairList.isSelectedIndex(1)) {
-                currentTradingPair = TradingPair.ETHEUR;
+                currentCurrencyPair = CurrencyPair.ETHEUR;
             } else if (tradingPairList.isSelectedIndex(2)) {
-                currentTradingPair = TradingPair.ETHBTC;
+                currentCurrencyPair = CurrencyPair.ETHBTC;
             } else {
-                logGui.log(Constants.TRADINGPAIR_ERROR);
-                System.out.println(Constants.TRADINGPAIR_ERROR);
+                logGui.log(Constants.CURRENCYPAIR_ERROR);
+                System.out.println(Constants.CURRENCYPAIR_ERROR);
             }
 
         }
@@ -314,6 +323,7 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
         }
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean isCoolingDown() {
         return System.currentTimeMillis() - coolDown < 500;
     }
@@ -343,10 +353,10 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
      */
     private void $$$setupUI$$$() {
         topLevelPanel = new JPanel();
-        topLevelPanel.setLayout(new GridLayoutManager(1, 4, new Insets(0, 0, 0, 0), -1, -1));
+        topLevelPanel.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
         topLevelPanel.setPreferredSize(new Dimension(600, 400));
         tabbedPane1 = new JTabbedPane();
-        topLevelPanel.add(tabbedPane1, new GridConstraints(0, 0, 1, 4, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(200, 200), null, 0, false));
+        topLevelPanel.add(tabbedPane1, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(200, 200), null, 0, false));
         priceTab = new JPanel();
         priceTab.setLayout(new GridLayoutManager(4, 1, new Insets(0, 0, 0, 0), -1, -1));
         tabbedPane1.addTab("ETH Price", priceTab);
@@ -371,6 +381,7 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
         listPanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
         priceTab.add(listPanel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         final JScrollPane scrollPane1 = new JScrollPane();
+        scrollPane1.putClientProperty("html.disable", Boolean.FALSE);
         listPanel.add(scrollPane1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         exchangesList = new JList();
         final DefaultListModel defaultListModel1 = new DefaultListModel();
@@ -425,11 +436,15 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
         alwaysOnTopCheckBox = new JCheckBox();
         alwaysOnTopCheckBox.setSelected(false);
         alwaysOnTopCheckBox.setText("Always on top");
+        alwaysOnTopCheckBox.setMnemonic('A');
+        alwaysOnTopCheckBox.setDisplayedMnemonicIndex(0);
         generalInfoPanel.add(alwaysOnTopCheckBox, new GridConstraints(3, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         progressBar = new JProgressBar();
         generalInfoPanel.add(progressBar, new GridConstraints(4, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         logButton = new JButton();
         logButton.setText("show log");
+        logButton.setMnemonic('L');
+        logButton.setDisplayedMnemonicIndex(5);
         generalInfoPanel.add(logButton, new GridConstraints(5, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         walletTab = new JPanel();
         walletTab.setLayout(new GridLayoutManager(5, 1, new Insets(0, 0, 0, 0), -1, -1));
@@ -448,6 +463,8 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
         panel1.add(walletInfoLabel, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         checkButton = new JButton();
         checkButton.setText("Check");
+        checkButton.setMnemonic('C');
+        checkButton.setDisplayedMnemonicIndex(0);
         panel1.add(checkButton, new GridConstraints(1, 3, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final JPanel panel2 = new JPanel();
         panel2.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
@@ -477,6 +494,11 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
         walletTab.add(spacer10, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         final Spacer spacer11 = new Spacer();
         walletTab.add(spacer11, new GridConstraints(4, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        menuPanel = new JPanel();
+        menuPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
+        topLevelPanel.add(menuPanel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_NORTH, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        exchangeLabel.setLabelFor(scrollPane1);
+        marketLabel.setLabelFor(scrollPane2);
     }
 
     /**

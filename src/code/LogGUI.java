@@ -8,11 +8,9 @@ import java.awt.*;
 import java.io.*;
 import java.time.Instant;
 
-public class LogGUI extends JFrame {
-    private String path;
-    JPanel contentPanel;
+class LogGUI extends JFrame {
+    private JPanel contentPanel;
     JTextPane log;
-    private File customDir;
 
     LogGUI() {
         setContentPane(contentPanel);
@@ -20,9 +18,9 @@ public class LogGUI extends JFrame {
         pack();
         setVisible(false);
 
-        path = System.getProperty("user.home") + File.separator + "Documents";
+        String path = System.getProperty("user.home") + File.separator + "Documents";
         path += File.separator + "EtherChecker";
-        customDir = new File(path);
+//        File customDir = new File(path);
 
     }
 
@@ -47,31 +45,6 @@ public class LogGUI extends JFrame {
 //                e.printStackTrace();
 //            }
 //        }
-    }
-
-    private void createDirectory() throws Exception {
-        if (!customDir.mkdirs()) {
-            throw new Exception();
-        }
-    }
-
-    private void saveToDisk(String text) throws IOException {
-
-        File f = new File(path + File.separator + "log.txt");
-        System.out.println(f);
-        FileWriter fw = new FileWriter(f, false);
-
-        try {
-            BufferedWriter bw = new BufferedWriter(fw);
-            System.out.println(text);
-
-            bw.write(text);
-
-            bw.flush();
-            bw.close();
-        } catch (Exception e) {
-            System.out.println(e.toString());
-        }
     }
 
     {
@@ -106,4 +79,34 @@ public class LogGUI extends JFrame {
     public JComponent $$$getRootComponent$$$() {
         return contentPanel;
     }
+
+// --Commented out by Inspection START (02.10.2017 14:15):
+//    private void createDirectory() throws Exception {
+//        if (!customDir.mkdirs()) {
+//            throw new Exception();
+//        }
+//    }
+// --Commented out by Inspection STOP (02.10.2017 14:15)
+
+// --Commented out by Inspection START (02.10.2017 14:15):
+//    private void saveToDisk(String text) throws IOException {
+//
+//        File f = new File(path + File.separator + "log.txt");
+//        System.out.println(f);
+//        FileWriter fw = new FileWriter(f, false);
+//
+//        try {
+//            BufferedWriter bw = new BufferedWriter(fw);
+//            System.out.println(text);
+//
+//            bw.write(text);
+//
+//            bw.flush();
+//            bw.close();
+//        } catch (Exception e) {
+//            System.out.println(e.toString());
+//        }
+//    }
+// --Commented out by Inspection STOP (02.10.2017 14:15)
+
 }
