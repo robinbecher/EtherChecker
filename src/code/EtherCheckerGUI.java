@@ -126,72 +126,13 @@ public class EtherCheckerGUI implements ListSelectionListener, ItemListener, Act
 
             if (response != null) {
                 System.out.println(response.result);
-                ethAmount.setText(trimETHValue(response.result) + " Ether");
+                ethAmount.setText(StringManipulator.trimETHValue(response.result) + " Ether");
             }
 
         });
         thread.start();
 
 
-    }
-
-    private String trimETHValue(String result) {
-
-        boolean lessThanOne = false;
-        while (result.length() < 18) {
-            result = result.concat("0");
-            lessThanOne = true;
-        }
-
-        if (lessThanOne) {
-            result = result.substring(0, 1) + "." + result.substring(1, result.length());
-        } else {
-            String base = result.substring(0, result.length() - 18);
-            String mantissa = result.substring(result.length() - 18, result.length());
-
-            base = groupDigits(Long.valueOf(base));
-            mantissa = removeTrailingZeroes(mantissa);
-
-            result = base + "." + mantissa;
-        }
-
-        return result;
-
-    }
-
-    private String removeTrailingZeroes(String mantissa) {
-        String newMantissa = mantissa;
-        boolean done = false;
-        while (!done) {
-            if (newMantissa.endsWith("0")) {
-                newMantissa = newMantissa.substring(0, newMantissa.length() - 1);
-            } else {
-                done = true;
-            }
-        }
-
-        return newMantissa;
-    }
-
-    private static String groupDigits(long number) {
-
-        String text = String.valueOf(number);
-        String newText = "";
-        int end = text.length();
-
-        for (int i = 0; i <= end / 3; i++) {
-            if (text.length() < 3) {
-                newText = text + newText;
-            } else {
-                newText = "," + text.substring(text.length() - 3, text.length()) + newText;
-                text = text.substring(0, text.length() - 3);
-            }
-        }
-
-        if (newText.startsWith(",")) {
-            newText = newText.substring(1);
-        }
-        return newText;
     }
 
     private String determineURLEtherscanWallet(String walletAddress) {
